@@ -1,0 +1,12 @@
+# Maven
+target/
+*.jar
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Environment variables
+.env
