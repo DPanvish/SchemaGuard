@@ -1,0 +1,5 @@
+# SchemaGuard CLI Configuration
+# Copy this file to application.properties and update the values for your local environment.
+
+# Directory where log files will be saved
+schemaguard.log.dir=logs

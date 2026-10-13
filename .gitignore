@@ -1,0 +1,14 @@
+# Maven
+target/
+*.jar
+*.class
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Environment variables
+.env
+# Ignore local Spring Boot properties
+schemaguard-cli/src/main/resources/application.properties

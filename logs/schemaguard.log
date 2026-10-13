@@ -1,0 +1,6 @@
+2026-10-13 20:39:25.320 [main] INFO  c.s.cli.SchemaGuardCliApplication - Starting SchemaGuardCliApplication using Java 25.0.4.1 with PID 17480 (F:\Projects\schemaguard\schemaguard-cli\target\schemaguard-cli-1.0-SNAPSHOT.jar started by Panvi in F:\Projects\schemaguard)
+2026-10-13 20:39:25.323 [main] INFO  c.s.cli.SchemaGuardCliApplication - No active profile set, falling back to 1 default profile: "default"
+2026-10-13 20:39:26.127 [main] INFO  c.s.cli.SchemaGuardCliApplication - Started SchemaGuardCliApplication in 1.413 seconds (process running for 2.013)
+2026-10-13 20:39:26.130 [main] INFO  c.schemaguard.cli.commands.CliRunner - Executing command: check
+2026-10-13 20:39:26.131 [main] INFO  c.schemaguard.cli.commands.CliRunner - Found 1 SQL migration files in safe-migrations
+2026-10-13 20:39:26.133 [main] INFO  c.schemaguard.cli.commands.CliRunner -  - V1__initial_schema.sql
