@@ -25,5 +25,12 @@
             <artifactId>jsqlparser</artifactId>
             <version>4.6</version>
         </dependency>
+
+        <!-- Testing starter for JUnit 5 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
