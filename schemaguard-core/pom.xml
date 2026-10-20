@@ -38,6 +38,12 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Jackson YAML for strict service contract and policy manifest parsing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+
         <!-- JSqlParser for SQL parsing -->
         <dependency>
             <groupId>com.github.jsqlparser</groupId>
