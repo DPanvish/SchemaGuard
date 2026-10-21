@@ -1,0 +1,14 @@
+version: 1
+services:
+  billing-api:
+    reads:
+      - table: public.customers
+        columns: [id, email]
+  notification-worker:
+    reads:
+      - table: public.customers
+        columns: [email]
+  reporting-service:
+    reads:
+      - table: public.customers
+        columns: [id, name]
