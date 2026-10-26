@@ -1,0 +1,20 @@
+version: 1
+dialect: postgresql
+policy:
+  unsupportedSql: require-review
+  destructiveChanges: block
+  breakingContracts: block
+  migrationHistoryChanges: block
+rules:
+  SG001:
+    enabled: true
+    severity: CRITICAL
+  SG005:
+    enabled: true
+    severity: HIGH
+    requireLargeTableProfile: true
+  SG010:
+    enabled: true
+    severity: REVIEW_REQUIRED
+reports:
+  formats: [markdown, json, sarif]
