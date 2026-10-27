@@ -33,12 +33,29 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class SchemaGuardAnalysisOrchestrator {
 
     private static final Logger log = LoggerFactory.getLogger(SchemaGuardAnalysisOrchestrator.class);
     public static final String TOOL_VERSION = "1.0-SNAPSHOT";
+
+    private static final Pattern VERSION_PREFIX_PATTERN = Pattern.compile("^[Vv](\\d+).*");
+
+    /**
+     * Sorts versioned migration filenames numerically (e.g., V1__ < V2__ < V12__ < V99__)
+     * so V12 is never ordered before V1.
+     */
+    public static final Comparator<String> MIGRATION_VERSION_COMPARATOR = (name1, name2) -> {
+        Long v1 = extractVersionNumber(name1);
+        Long v2 = extractVersionNumber(name2);
+        if (v1 != null && v2 != null && !v1.equals(v2)) {
+            return Long.compare(v1, v2);
+        }
+        return name1.compareToIgnoreCase(name2);
+    };
 
     private final MigrationParser migrationParser;
     private final MigrationChecksumService checksumService;
@@ -113,7 +130,7 @@ public class SchemaGuardAnalysisOrchestrator {
         List<File> baseFiles = listSqlFiles(request.baseMigrationsDir());
         List<File> candidateFiles = listSqlFiles(request.candidateMigrationsDir());
 
-        // Combine base + candidate files if candidate directory only contains delta migrations
+        // Combine base + candidate files in true numerical migration order
         List<File> fullCandidateChain = buildFullCandidateChain(baseFiles, candidateFiles);
 
         // Stage 2: Pre-checks (checksums, historical migration edits, parser coverage)
@@ -216,7 +233,6 @@ public class SchemaGuardAnalysisOrchestrator {
         if (diffResult == null || diffResult.changes().isEmpty()) {
             return false;
         }
-        // Only flag coverage gap on destructive/altering changes to existing tables when contracts are missing
         for (SchemaChange change : diffResult.changes()) {
             if (change.changeType() == ChangeType.COLUMN_DROPPED
                     || change.changeType() == ChangeType.TABLE_DROPPED
@@ -230,7 +246,7 @@ public class SchemaGuardAnalysisOrchestrator {
     }
 
     private List<File> buildFullCandidateChain(List<File> baseFiles, List<File> candidateFiles) {
-        Map<String, File> chainByFileName = new TreeMap<>();
+        Map<String, File> chainByFileName = new TreeMap<>(MIGRATION_VERSION_COMPARATOR);
         for (File bf : baseFiles) {
             chainByFileName.put(bf.getName(), bf);
         }
@@ -248,8 +264,23 @@ public class SchemaGuardAnalysisOrchestrator {
         if (files == null || files.length == 0) {
             return List.of();
         }
-        Arrays.sort(files, Comparator.comparing(File::getName));
+        Arrays.sort(files, (f1, f2) -> MIGRATION_VERSION_COMPARATOR.compare(f1.getName(), f2.getName()));
         return List.of(files);
+    }
+
+    private static Long extractVersionNumber(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        Matcher matcher = VERSION_PREFIX_PATTERN.matcher(fileName);
+        if (matcher.matches()) {
+            try {
+                return Long.parseLong(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     private void persistReportFiles(AnalysisReport report, Path baseOutputDir) {
