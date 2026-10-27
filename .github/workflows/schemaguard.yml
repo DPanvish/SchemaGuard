@@ -1,0 +1,30 @@
+name: SchemaGuard
+on:
+  pull_request:
+    paths:
+      - "db/migration/**"
+      - ".schemaguard/**"
+      - "schemaguard-core/**"
+      - "schemaguard-cli/**"
+      - "test-fixtures/**"
+permissions:
+  contents: read
+jobs:
+  schema-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Run Unit and Regression Suite
+        run: mvn clean test
+      - name: Run SchemaGuard Safe Migration Check
+        run: >-
+          mvn -q -pl schemaguard-cli -am exec:java
+          -Dexec.mainClass="com.schemaguard.cli.SchemaGuardCliApplication"
+          -Dexec.args="check --base origin/${{ github.base_ref }} --head ${{ github.sha }} --base-dir test-fixtures/safe-migrations --candidate-dir test-fixtures/safe-migrations"
