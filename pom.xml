@@ -15,6 +15,7 @@
     <modules>
         <module>schemaguard-core</module>
         <module>schemaguard-cli</module>
+        <module>schemaguard-api</module>
     </modules>
 
     <properties>
