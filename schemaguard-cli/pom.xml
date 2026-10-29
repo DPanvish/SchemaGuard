@@ -38,6 +38,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>com.schemaguard.cli.SchemaGuardCliApplication</mainClass>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
