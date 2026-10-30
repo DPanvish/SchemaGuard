@@ -8,6 +8,20 @@
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
 
     <!-- ========================================================= -->
+    <!--                  CONSOLE APPENDER                             -->
+    <!-- ========================================================= -->
+
+    <!-- Console Appender for CLI output and error visibility -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ========================================================= -->
     <!--                   CLI APPENDERS                           -->
     <!-- ========================================================= -->
 
@@ -121,21 +135,25 @@
     <!--                     LOGGER BINDINGS                       -->
     <!-- ========================================================= -->
 
-    <!-- CLI Logger: capture DEBUG and above, send to CLI appenders only -->
+    <!-- CLI Logger: capture DEBUG and above, send to Console and CLI appenders -->
     <logger name="com.schemaguard.cli" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
         <appender-ref ref="CLI_ERROR_FILE" />
         <appender-ref ref="CLI_INFO_FILE" />
         <appender-ref ref="CLI_DEBUG_FILE" />
     </logger>
 
-    <!-- Core Logger: capture DEBUG and above, send to Core appenders only -->
+    <!-- Core Logger: capture DEBUG and above, send to Console and Core appenders -->
     <logger name="com.schemaguard.core" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
         <appender-ref ref="CORE_ERROR_FILE" />
         <appender-ref ref="CORE_INFO_FILE" />
         <appender-ref ref="CORE_DEBUG_FILE" />
     </logger>
 
-    <!-- Silence third-party framework logs from standard output -->
-    <root level="OFF" />
+    <!-- Framework errors and startup failure analysis to standard output -->
+    <root level="ERROR">
+        <appender-ref ref="CONSOLE" />
+    </root>
 
 </configuration>

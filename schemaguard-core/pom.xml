@@ -19,12 +19,6 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Spring JDBC for querying PostgreSQL system catalogs -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-
         <!-- PostgreSQL Driver for catalog inspection -->
         <dependency>
             <groupId>org.postgresql</groupId>
