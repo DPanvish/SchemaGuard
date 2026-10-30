@@ -12,3 +12,4 @@ target/
 .env
 # Ignore local Spring Boot properties
 schemaguard-cli/src/main/resources/application.properties
+schemaguard-api/src/main/resources/application.properties
