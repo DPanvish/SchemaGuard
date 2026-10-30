@@ -150,6 +150,13 @@ public class CliRunner implements CommandLineRunner, ExitCodeGenerator {
 
         AnalysisReport report = orchestrator.executeAnalysis(request);
         this.exitCode = report.exitCode();
+        log.info("Analysis completed for runId '{}' with decision: {} (exitCode: {})",
+                report.runId(), report.decision(), this.exitCode);
+        if (!report.findings().isEmpty()) {
+            for (var finding : report.findings()) {
+                log.warn("[{}] {} on {}: {}", finding.severity(), finding.ruleId(), finding.objectRef(), finding.message());
+            }
+        }
     }
 
     private void handleValidateContractsCommand(Map<String, String> flags) {
