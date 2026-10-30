@@ -1,0 +1,12 @@
+# SchemaGuard API & Web Dashboard Configuration
+server.port=8080
+
+# Directory where API and Core log files are saved
+schemaguard.log.dir=logs
+
+# Metadata Database (Zero-cost PostgreSQL-mode H2 by default; override with jdbc:postgresql:// in local application.properties)
+spring.datasource.url=jdbc:h2:file:./.schemaguard/metadata-db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.sql.init.mode=always
