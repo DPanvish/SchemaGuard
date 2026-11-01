@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  schemaguard-postgres:
+    image: postgres:16-alpine
+    container_name: schemaguard-metadata-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: schemaguard_meta
+      POSTGRES_USER: schemaguard
+      POSTGRES_PASSWORD: schemaguard_local_pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - schemaguard_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schemaguard -d schemaguard_meta"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  schemaguard_pgdata:
