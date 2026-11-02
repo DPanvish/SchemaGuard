@@ -14,3 +14,4 @@ target/
 schemaguard-cli/src/main/resources/application.properties
 schemaguard-api/src/main/resources/application.properties
 schemaguard-cli/.schemaguard
+schemaguard-ui/node_modules
