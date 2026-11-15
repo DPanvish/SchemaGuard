@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import {
-  AlertTriangle,
   ShieldAlert,
   FileCode2,
   CheckCircle2,
-  HelpCircle,
   ExternalLink,
   Layers,
   Info,
