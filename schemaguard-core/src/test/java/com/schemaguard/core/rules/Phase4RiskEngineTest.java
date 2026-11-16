@@ -181,4 +181,42 @@ class Phase4RiskEngineTest {
         assertTrue(findings.stream().anyMatch(f -> "SG005".equals(f.ruleId()) && f.severity() == Severity.HIGH));
         assertTrue(findings.stream().anyMatch(f -> "SG010".equals(f.ruleId()) && f.severity() == Severity.REVIEW_REQUIRED));
     }
+
+    @Test
+    void shouldTriggerSG009ForDestructiveDmlWithoutBackupStrategy() {
+        SchemaSnapshot snap = normalizer.normalizeAndHash("16.2", List.of());
+        SchemaDiffResult emptyDiff = diffEngine.compare(snap, snap, List.of());
+
+        NormalizedOperation deleteOp = NormalizedOperation.create(
+                OperationType.DML, "public", "customers", null,
+                Map.of("action", "DELETE", "destructiveDml", true, "hasWhereClause", false),
+                "V5__purge_customers.sql", 1, 1, ParserStatus.SUPPORTED
+        );
+
+        MigrationArtifact artifact = MigrationArtifact.of(
+                "V5__purge_customers.sql", "V5__purge_customers.sql", "hash5", List.of(deleteOp)
+        );
+
+        // Without backup strategy declared
+        AnalysisContext ctxWithoutBackup = new AnalysisContext(
+                snap, snap, emptyDiff, List.of(artifact), List.of(),
+                Map.of(), Map.of(), false, List.of(), false
+        );
+
+        List<Finding> findings = ruleEngine.evaluateAll(ctxWithoutBackup);
+        assertEquals(1, findings.size());
+        Finding f = findings.get(0);
+        assertEquals("SG009", f.ruleId());
+        assertEquals(Severity.REVIEW_REQUIRED, f.severity());
+        assertEquals("public.customers", f.objectRef());
+
+        // With backup strategy declared
+        AnalysisContext ctxWithBackup = new AnalysisContext(
+                snap, snap, emptyDiff, List.of(artifact), List.of(),
+                Map.of(), Map.of(), false, List.of(), true
+        );
+
+        List<Finding> findingsWithBackup = ruleEngine.evaluateAll(ctxWithBackup);
+        assertTrue(findingsWithBackup.stream().noneMatch(finding -> "SG009".equals(finding.ruleId())));
+    }
 }
