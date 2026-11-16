@@ -164,6 +164,15 @@ public class SchemaGuardAnalysisOrchestrator {
 
         boolean incompleteContractCoverage = checkIncompleteContractCoverage(diffResult, dependencyGraph, contracts);
 
+        boolean backupDeclared = candidateFiles.stream().anyMatch(f -> {
+            try {
+                String content = Files.readString(f.toPath(), StandardCharsets.UTF_8).toLowerCase(Locale.ROOT);
+                return content.contains("backup") || content.contains("backup-strategy");
+            } catch (IOException e) {
+                return false;
+            }
+        });
+
         AnalysisContext context = new AnalysisContext(
                 baseSnapshot,
                 candidateSnapshot,
@@ -174,7 +183,7 @@ public class SchemaGuardAnalysisOrchestrator {
                 Map.of(),
                 false,
                 List.of(),
-                true
+                backupDeclared
         );
 
         List<Finding> rawFindings = ruleEngine.evaluateAll(context);

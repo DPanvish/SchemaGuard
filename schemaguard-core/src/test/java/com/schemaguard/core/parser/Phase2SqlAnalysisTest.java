@@ -98,4 +98,46 @@ class Phase2SqlAnalysisTest {
         assertEquals(1, tampered.size());
         assertEquals("V1__initial_schema.sql", tampered.get(0).fileName());
     }
+
+    @Test
+    void shouldParseSupportedDmlStatements() throws IOException {
+        Path sqlFile = tempDir.resolve("V2__dml_operations.sql");
+        Files.writeString(sqlFile, """
+                DELETE FROM public.customers WHERE id = '123';
+                UPDATE public.customers SET email = 'anon@example.com';
+                TRUNCATE TABLE public.customers;
+                INSERT INTO public.customers (id, email) VALUES ('123', 'test@example.com');
+                """);
+
+        List<NormalizedOperation> ops = parser.parse(sqlFile.toFile());
+
+        assertEquals(4, ops.size());
+
+        // DELETE
+        assertEquals(OperationType.DML, ops.get(0).operationType());
+        assertEquals("customers", ops.get(0).objectName());
+        assertEquals("public", ops.get(0).schemaName());
+        assertEquals(ParserStatus.SUPPORTED, ops.get(0).parserStatus());
+        assertEquals(true, ops.get(0).arguments().get("destructiveDml"));
+        assertEquals(true, ops.get(0).arguments().get("hasWhereClause"));
+
+        // UPDATE
+        assertEquals(OperationType.DML, ops.get(1).operationType());
+        assertEquals("customers", ops.get(1).objectName());
+        assertEquals(ParserStatus.SUPPORTED, ops.get(1).parserStatus());
+        assertEquals(true, ops.get(1).arguments().get("destructiveDml"));
+        assertEquals(false, ops.get(1).arguments().get("hasWhereClause"));
+
+        // TRUNCATE
+        assertEquals(OperationType.DML, ops.get(2).operationType());
+        assertEquals("customers", ops.get(2).objectName());
+        assertEquals(ParserStatus.SUPPORTED, ops.get(2).parserStatus());
+        assertEquals(true, ops.get(2).arguments().get("destructiveDml"));
+
+        // INSERT
+        assertEquals(OperationType.DML, ops.get(3).operationType());
+        assertEquals("customers", ops.get(3).objectName());
+        assertEquals(ParserStatus.SUPPORTED, ops.get(3).parserStatus());
+        assertEquals(false, ops.get(3).arguments().get("destructiveDml"));
+    }
 }

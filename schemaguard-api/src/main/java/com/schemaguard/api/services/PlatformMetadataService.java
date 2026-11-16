@@ -340,9 +340,13 @@ public class PlatformMetadataService {
                 }
             }
 
+            boolean backupDeclared = req.candidateSql() != null &&
+                    (req.candidateSql().toLowerCase(Locale.ROOT).contains("backup")
+                            || req.candidateSql().toLowerCase(Locale.ROOT).contains("backup-strategy"));
+
             AnalysisContext ctx = new AnalysisContext(
                     baseSnap, candSnap, diff, List.of(artifact), List.of(),
-                    graph.toDeclaredConsumersMap(), Map.of(), false, List.of(), true
+                    graph.toDeclaredConsumersMap(), Map.of(), false, List.of(), backupDeclared
             );
             List<Finding> findings = ruleEngine.evaluateAll(ctx);
 

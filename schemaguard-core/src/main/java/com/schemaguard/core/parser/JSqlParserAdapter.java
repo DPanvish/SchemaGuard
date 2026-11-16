@@ -12,7 +12,11 @@ import net.sf.jsqlparser.statement.alter.AlterExpression;
 import net.sf.jsqlparser.statement.alter.AlterOperation;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.truncate.Truncate;
+import net.sf.jsqlparser.statement.update.Update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -127,6 +131,71 @@ public class JSqlParserAdapter implements MigrationParser {
 
         } else if (stmt instanceof Alter alter) {
             result.addAll(normalizeAlterStatement(alter, fileName, startLine, endLine));
+
+        } else if (stmt instanceof Delete delete) {
+            Table table = delete.getTable();
+            String schema = table != null ? resolveSchema(table.getSchemaName()) : DEFAULT_SCHEMA;
+            String tableName = table != null ? cleanIdentifier(table.getName()) : "UNKNOWN";
+            boolean hasWhere = delete.getWhere() != null;
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("action", "DELETE");
+            args.put("destructiveDml", true);
+            args.put("hasWhereClause", hasWhere);
+            args.put("rawStatementType", "DELETE");
+
+            log.debug("Normalized DML DELETE on {}.{} at lines {}-{} (hasWhere={})", schema, tableName, startLine, endLine, hasWhere);
+            result.add(NormalizedOperation.create(
+                    OperationType.DML, schema, tableName, null, args, fileName, startLine, endLine, ParserStatus.SUPPORTED
+            ));
+
+        } else if (stmt instanceof Update update) {
+            Table table = update.getTable();
+            String schema = table != null ? resolveSchema(table.getSchemaName()) : DEFAULT_SCHEMA;
+            String tableName = table != null ? cleanIdentifier(table.getName()) : "UNKNOWN";
+            boolean hasWhere = update.getWhere() != null;
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("action", "UPDATE");
+            args.put("destructiveDml", true);
+            args.put("hasWhereClause", hasWhere);
+            args.put("rawStatementType", "UPDATE");
+
+            log.debug("Normalized DML UPDATE on {}.{} at lines {}-{} (hasWhere={})", schema, tableName, startLine, endLine, hasWhere);
+            result.add(NormalizedOperation.create(
+                    OperationType.DML, schema, tableName, null, args, fileName, startLine, endLine, ParserStatus.SUPPORTED
+            ));
+
+        } else if (stmt instanceof Truncate truncate) {
+            Table table = truncate.getTable();
+            String schema = table != null ? resolveSchema(table.getSchemaName()) : DEFAULT_SCHEMA;
+            String tableName = table != null ? cleanIdentifier(table.getName()) : "UNKNOWN";
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("action", "TRUNCATE");
+            args.put("destructiveDml", true);
+            args.put("hasWhereClause", false);
+            args.put("rawStatementType", "TRUNCATE");
+
+            log.debug("Normalized DML TRUNCATE on {}.{} at lines {}-{}", schema, tableName, startLine, endLine);
+            result.add(NormalizedOperation.create(
+                    OperationType.DML, schema, tableName, null, args, fileName, startLine, endLine, ParserStatus.SUPPORTED
+            ));
+
+        } else if (stmt instanceof Insert insert) {
+            Table table = insert.getTable();
+            String schema = table != null ? resolveSchema(table.getSchemaName()) : DEFAULT_SCHEMA;
+            String tableName = table != null ? cleanIdentifier(table.getName()) : "UNKNOWN";
+
+            Map<String, Object> args = new HashMap<>();
+            args.put("action", "INSERT");
+            args.put("destructiveDml", false);
+            args.put("rawStatementType", "INSERT");
+
+            log.debug("Normalized DML INSERT on {}.{} at lines {}-{}", schema, tableName, startLine, endLine);
+            result.add(NormalizedOperation.create(
+                    OperationType.DML, schema, tableName, null, args, fileName, startLine, endLine, ParserStatus.SUPPORTED
+            ));
 
         } else {
             String stmtClass = stmt.getClass().getSimpleName();

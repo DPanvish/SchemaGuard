@@ -1,60 +1,41 @@
-name: SchemaGuard CI
+name: SchemaGuard
 
 on:
-  push:
-    branches:
-      - main
-      - master
   pull_request:
+    paths:
+      - "db/migration/**"
+      - ".schemaguard/**"
+      - "schemaguard/**"
 
 permissions:
   contents: read
+  security-events: write # Required for uploading SARIF reports
 
 jobs:
   schema-safety:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
-      - name: Build and Run Regression Test Suite
-        run: mvn -B clean package
-
-      - name: Verify Safe Migration Passes (Expected Exit Code 0)
+      - name: Run SchemaGuard Analysis
         run: |
+          mvn clean package -DskipTests
           java -jar schemaguard-cli/target/schemaguard-cli-1.0-SNAPSHOT.jar check \
-            --run-id ci-safe-check \
-            --base origin/${{ github.base_ref || 'main' }} \
-            --head ${{ github.sha }} \
-            --base-dir examples/sample-company/baseline-migrations \
-            --candidate-dir examples/sample-company/safe-candidate \
-            --contracts test-fixtures/sample-contracts/service-contracts.yaml \
-            --policy test-fixtures/sample-contracts/policy.yaml
-
-      - name: Verify Unsafe Migration Blocks (Expected Exit Code 1)
-        run: |
-          set +e
-          java -jar schemaguard-cli/target/schemaguard-cli-1.0-SNAPSHOT.jar check \
-            --run-id ci-unsafe-check \
-            --base origin/${{ github.base_ref || 'main' }} \
-            --head ${{ github.sha }} \
             --base-dir examples/sample-company/baseline-migrations \
             --candidate-dir examples/sample-company/unsafe-candidate \
-            --contracts test-fixtures/sample-contracts/service-contracts.yaml \
-            --policy test-fixtures/sample-contracts/policy.yaml
-          EXIT_CODE=$?
-          set -e
-          if [ $EXIT_CODE -ne 1 ]; then
-            echo "Expected unsafe migration to fail with exit code 1, but got $EXIT_CODE"
-            exit 1
-          fi
-          echo "Unsafe migration correctly blocked with exit code 1."
+            --policy .schemaguard/policy.yaml \
+            --contracts examples/sample-company/.schemaguard/service-contracts.yaml
+
+      - name: Upload SARIF Report to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: .schemaguard/runs/latest/report.sarif

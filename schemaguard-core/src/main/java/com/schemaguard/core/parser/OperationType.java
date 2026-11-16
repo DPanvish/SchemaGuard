@@ -8,5 +8,6 @@ public enum OperationType {
     ALTER_COLUMN_TYPE,
     ADD_CONSTRAINT,
     ADD_INDEX,
+    DML,
     UNKNOWN_OR_UNSUPPORTED
 }
